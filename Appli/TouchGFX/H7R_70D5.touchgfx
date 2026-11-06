@@ -7,8 +7,8 @@
           {
             "Type": "Box",
             "Name": "box1",
-            "Width": 1024,
-            "Height": 600,
+            "Width": 1280,
+            "Height": 800,
             "Color": {
               "Green": 255,
               "Blue": 13
@@ -43,11 +43,15 @@
         "Name": "screen",
         "Components": [
           {
-            "Type": "Image",
-            "Name": "image1",
-            "Width": 1024,
-            "Height": 600,
-            "RelativeFilename": "HEPA_3.png"
+            "Type": "Box",
+            "Name": "box1",
+            "Width": 1280,
+            "Height": 800,
+            "Color": {
+              "Red": 255,
+              "Green": 255,
+              "Blue": 255
+            }
           },
           {
             "Type": "TextArea",
@@ -111,8 +115,8 @@
     "CustomContainerDefinitions": [],
     "Name": "H7R_70D5",
     "Resolution": {
-      "Width": 1024,
-      "Height": 600
+      "Width": 1280,
+      "Height": 800
     },
     "SelectedColorDepth": 16,
     "StartupScreenName": "MainScreen",
@@ -131,8 +135,8 @@
     ],
     "AvailableResolutions": [
       {
-        "Width": 1024,
-        "Height": 600
+        "Width": 1280,
+        "Height": 800
       }
     ],
     "PhysicalButtons": [],

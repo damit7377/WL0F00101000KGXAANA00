@@ -36,8 +36,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define LCD_WIDTH       1024U
-#define LCD_HEIGHT      600U
+#define LCD_WIDTH       1280U
+#define LCD_HEIGHT      800U
 #define LCD_FB_ADDR     ((uintptr_t)__lcd_framebuffer_start__)
 #define RGB565_BLUE     0x001FU
 #define RGB565_GREEN    0x07E0U
@@ -145,338 +145,6 @@ static void APP_RunColorCycleTest(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-#if 0
-static void ETH_Loopback_ReleaseRxBuffers(ETH_BufferTypeDef *buffer)
-{
-  ETH_BufferTypeDef *next;
-
-  while (buffer != NULL)
-  {
-    next = buffer->next;
-    for (uint32_t index = 0U; index < ETH_LOOPBACK_RX_POOL_SIZE; index++)
-    {
-      if (&ethLoopbackRxPool[index].link == buffer)
-      {
-        ethLoopbackRxPool[index].inUse = 0U;
-        break;
-      }
-    }
-    buffer = next;
-  }
-}
-
-static void ETH_Loopback_BuildFrame(uint8_t *frame, uint32_t sequence)
-{
-  static const uint8_t testPattern[] = "ETH_LOOPBACK";
-
-  memset(frame, 0, ETH_LOOPBACK_FRAME_SIZE);
-  memcpy(&frame[0], heth.Init.MACAddr, 6U);
-  memcpy(&frame[6], heth.Init.MACAddr, 6U);
-  frame[12] = (uint8_t)(ETH_LOOPBACK_ETHERTYPE >> 8);
-  frame[13] = (uint8_t)ETH_LOOPBACK_ETHERTYPE;
-  memcpy(&frame[14], testPattern, sizeof(testPattern));
-  memcpy(&frame[32], &sequence, sizeof(sequence));
-}
-
-static HAL_StatusTypeDef ETH_Loopback_Transmit(void)
-{
-  ETH_BufferTypeDef txBuffer = {0};
-  ETH_TxPacketConfigTypeDef txConfig = {0};
-  HAL_StatusTypeDef status;
-
-  ETH_Loopback_BuildFrame(ethLoopbackTxFrame, ethLoopbackSequence);
-  memcpy(ethLoopbackTxSnapshot, ethLoopbackTxFrame, ETH_LOOPBACK_FRAME_SIZE);
-
-  txBuffer.buffer = ethLoopbackTxFrame;
-  txBuffer.len = sizeof(ethLoopbackTxFrame);
-  txConfig.Attributes = ETH_TX_PACKETS_FEATURES_CRCPAD;
-  txConfig.Length = sizeof(ethLoopbackTxFrame);
-  txConfig.TxBuffer = &txBuffer;
-  txConfig.CRCPadCtrl = ETH_CRC_PAD_INSERT;
-
-  ethLoopbackTxAttempts++;
-  ethLoopbackLastTxSequence = ethLoopbackSequence;
-  status = HAL_ETH_Transmit(&heth, &txConfig, ETH_LOOPBACK_TX_TIMEOUT_MS);
-  ethLoopbackLastHalStatus = status;
-  ethLoopbackLastEthError = heth.ErrorCode;
-  if (status == HAL_OK)
-  {
-    ethLoopbackTxSuccess++;
-    ethLoopbackSequence++;
-  }
-  else
-  {
-    ethLoopbackTxErrors++;
-  }
-
-  return status;
-}
-
-static void ETH_Loopback_ProcessRx(void)
-{
-  ETH_BufferTypeDef *packet = NULL;
-  uint32_t receivedSequence;
-
-  while (HAL_ETH_ReadData(&heth, (void **)&packet) == HAL_OK)
-  {
-    ethLoopbackRxFrames++;
-    ethLoopbackLastRxLength = packet->len;
-
-    if ((packet->next == NULL) && (packet->len == ETH_LOOPBACK_FRAME_SIZE))
-    {
-      memcpy(ethLoopbackRxSnapshot, packet->buffer, ETH_LOOPBACK_FRAME_SIZE);
-      memcpy(&receivedSequence, &ethLoopbackRxSnapshot[32], sizeof(receivedSequence));
-      ethLoopbackLastRxSequence = receivedSequence;
-
-      if (memcmp(ethLoopbackRxSnapshot,
-                 ethLoopbackTxSnapshot,
-                 ETH_LOOPBACK_FRAME_SIZE) != 0)
-      {
-        ethLoopbackRxCompareErrors++;
-      }
-      else if (receivedSequence == ethLoopbackRxExpectedSequence)
-      {
-        ethLoopbackRxPass++;
-        ethLoopbackRxExpectedSequence++;
-      }
-      else if (receivedSequence > ethLoopbackRxExpectedSequence)
-      {
-        ethLoopbackRxMissingPackets += receivedSequence - ethLoopbackRxExpectedSequence;
-        ethLoopbackRxCompareErrors++;
-        ethLoopbackRxExpectedSequence = receivedSequence + 1U;
-      }
-      else
-      {
-        ethLoopbackRxCompareErrors++;
-      }
-    }
-    else
-    {
-      ethLoopbackRxCompareErrors++;
-    }
-
-    ETH_Loopback_ReleaseRxBuffers(packet);
-    packet = NULL;
-  }
-}
-
-static HAL_StatusTypeDef ETH_Loopback_CommonInit(ETH_MACConfigTypeDef *macConfig)
-{
-  HAL_StatusTypeDef status;
-
-  heth.Init.RxDesc = ethLoopbackRxDesc;
-  heth.Init.TxDesc = ethLoopbackTxDesc;
-  heth.Init.RxBuffLen = ETH_LOOPBACK_RX_BUFFER_SIZE;
-  status = HAL_ETH_Init(&heth);
-
-  memset(ethLoopbackRxPool, 0, sizeof(ethLoopbackRxPool));
-
-  if (status == HAL_OK)
-  {
-    status = HAL_ETH_GetMACConfig(&heth, macConfig);
-  }
-
-  return status;
-}
-
-static void ETH_Loopback_SaveInitStatus(HAL_StatusTypeDef status)
-{
-  ethLoopbackInitStatus = status;
-  ethLoopbackLastHalStatus = status;
-  ethLoopbackLastEthError = heth.ErrorCode;
-  ethLoopbackLastTxTick = HAL_GetTick();
-}
-
-static HAL_StatusTypeDef ETH_MAC_Loopback_Init(void)
-{
-  ETH_MACConfigTypeDef macConfig;
-  HAL_StatusTypeDef status = ETH_Loopback_CommonInit(&macConfig);
-
-  if (status == HAL_OK)
-  {
-    macConfig.LoopbackMode = ENABLE;
-    macConfig.DuplexMode = ETH_FULLDUPLEX_MODE;
-    status = HAL_ETH_SetMACConfig(&heth, &macConfig);
-  }
-  if (status == HAL_OK)
-  {
-    status = HAL_ETH_Start(&heth);
-  }
-
-  ethLoopbackActiveMode = ETH_LOOPBACK_MODE_MAC;
-  ETH_Loopback_SaveInitStatus(status);
-  return status;
-}
-
-static HAL_StatusTypeDef ETH_PHY_FindAddress(uint32_t *phyAddress)
-{
-  uint32_t id1;
-  uint32_t id2;
-
-  for (uint32_t address = 0U; address <= 1U; address++)
-  {
-    if ((HAL_ETH_ReadPHYRegister(&heth, address, LAN8742_PHYID1, &id1) == HAL_OK) &&
-        (HAL_ETH_ReadPHYRegister(&heth, address, LAN8742_PHYID2, &id2) == HAL_OK) &&
-        (id1 == LAN8742_PHYID1_VALUE) &&
-        ((id2 & LAN8742_PHYID2_MASK) == LAN8742_PHYID2_VALUE))
-    {
-      *phyAddress = address;
-      ethPhyId1 = id1;
-      ethPhyId2 = id2;
-      return HAL_OK;
-    }
-  }
-
-  return HAL_ERROR;
-}
-
-static HAL_StatusTypeDef ETH_PHY_Loopback_Init(void)
-{
-  ETH_MACConfigTypeDef macConfig;
-  uint32_t phyAddress;
-  uint32_t bmcr;
-  HAL_StatusTypeDef status = ETH_Loopback_CommonInit(&macConfig);
-
-  if (status == HAL_OK)
-  {
-    status = ETH_PHY_FindAddress(&phyAddress);
-  }
-  if (status == HAL_OK)
-  {
-    ethPhyAddress = phyAddress;
-    macConfig.LoopbackMode = DISABLE;
-    macConfig.Speed = ETH_SPEED_100M;
-    macConfig.DuplexMode = ETH_FULLDUPLEX_MODE;
-    status = HAL_ETH_SetMACConfig(&heth, &macConfig);
-  }
-  if (status == HAL_OK)
-  {
-    status = HAL_ETH_WritePHYRegister(&heth, phyAddress, LAN8742_BMCR,
-                                      LAN8742_BMCR_LOOPBACK_100FD);
-  }
-  if (status == HAL_OK)
-  {
-    status = HAL_ETH_ReadPHYRegister(&heth, phyAddress, LAN8742_BMCR, &bmcr);
-    ethPhyBmcr = bmcr;
-  }
-  if ((status == HAL_OK) &&
-      ((ethPhyBmcr & LAN8742_BMCR_LOOPBACK_100FD) != LAN8742_BMCR_LOOPBACK_100FD))
-  {
-    status = HAL_ERROR;
-  }
-  if (status == HAL_OK)
-  {
-    status = HAL_ETH_Start(&heth);
-  }
-
-  ethLoopbackActiveMode = ETH_LOOPBACK_MODE_PHY;
-  ETH_Loopback_SaveInitStatus(status);
-  return status;
-}
-
-static HAL_StatusTypeDef ETH_RJ45_Loopback_Init(void)
-{
-  ETH_MACConfigTypeDef macConfig;
-  uint32_t phyAddress;
-  uint32_t bmcr;
-  HAL_StatusTypeDef status = ETH_Loopback_CommonInit(&macConfig);
-
-  if (status == HAL_OK)
-  {
-    status = ETH_PHY_FindAddress(&phyAddress);
-  }
-  if (status == HAL_OK)
-  {
-    ethPhyAddress = phyAddress;
-    macConfig.LoopbackMode = DISABLE;
-    macConfig.Speed = ETH_SPEED_100M;
-    macConfig.DuplexMode = ETH_FULLDUPLEX_MODE;
-    status = HAL_ETH_SetMACConfig(&heth, &macConfig);
-  }
-  if (status == HAL_OK)
-  {
-    status = HAL_ETH_WritePHYRegister(&heth, phyAddress, LAN8742_BMCR,
-                                      LAN8742_BMCR_NORMAL_100FD);
-  }
-  if (status == HAL_OK)
-  {
-    HAL_Delay(330U);
-  }
-  if (status == HAL_OK)
-  {
-    status = HAL_ETH_ReadPHYRegister(&heth, phyAddress, LAN8742_BMCR, &bmcr);
-    ethPhyBmcr = bmcr;
-  }
-  if ((status == HAL_OK) &&
-      ((ethPhyBmcr & (LAN8742_BMCR_LOOPBACK | LAN8742_BMCR_SPEED_100M |
-                      LAN8742_BMCR_FULL_DUPLEX)) != LAN8742_BMCR_NORMAL_100FD))
-  {
-    status = HAL_ERROR;
-  }
-  if (status == HAL_OK)
-  {
-    status = HAL_ETH_ReadPHYRegister(&heth, phyAddress, LAN8742_BMSR, &ethPhyBmsr);
-  }
-  if (status == HAL_OK)
-  {
-    status = HAL_ETH_ReadPHYRegister(&heth, phyAddress, LAN8742_BMSR, &ethPhyBmsr);
-    ethPhyLinkUp = ((ethPhyBmsr & (1U << 2U)) != 0U) ? 1U : 0U;
-  }
-  if (status == HAL_OK)
-  {
-    status = HAL_ETH_Start(&heth);
-  }
-
-  ethLoopbackActiveMode = ETH_LOOPBACK_MODE_RJ45;
-  ethPhyLastLinkCheckTick = HAL_GetTick();
-  ETH_Loopback_SaveInitStatus(status);
-  return status;
-}
-
-static void ETH_RJ45_UpdateLinkStatus(void)
-{
-  uint32_t firstStatus;
-  uint32_t secondStatus;
-
-  if (ethPhyAddress > 31U)
-  {
-    return;
-  }
-
-  ethPhyLinkChecks++;
-  if ((HAL_ETH_ReadPHYRegister(&heth, ethPhyAddress, LAN8742_BMSR, &firstStatus) != HAL_OK) ||
-      (HAL_ETH_ReadPHYRegister(&heth, ethPhyAddress, LAN8742_BMSR, &secondStatus) != HAL_OK))
-  {
-    ethPhyLinkReadErrors++;
-    ethPhyLinkUp = 0U;
-    return;
-  }
-
-  ethPhyBmsr = secondStatus;
-  ethPhyLinkUp = ((secondStatus & (1U << 2U)) != 0U) ? 1U : 0U;
-}
-
-static void ETH_Loopback_Process(void)
-{
-  uint32_t now = HAL_GetTick();
-
-  ETH_Loopback_ProcessRx();
-  if ((ethLoopbackActiveMode == ETH_LOOPBACK_MODE_RJ45) &&
-      ((now - ethPhyLastLinkCheckTick) >= 100U))
-  {
-    ethPhyLastLinkCheckTick = now;
-    ETH_RJ45_UpdateLinkStatus();
-  }
-  if ((now - ethLoopbackLastTxTick) >= ETH_LOOPBACK_TX_PERIOD_MS)
-  {
-    ethLoopbackLastTxTick = now;
-    if ((ethLoopbackActiveMode != ETH_LOOPBACK_MODE_RJ45) || (ethPhyLinkUp != 0U))
-    {
-      (void)ETH_Loopback_Transmit();
-    }
-  }
-}
-#endif
 
 static void Set_Brightness_Duty(uint8_t duty)
 {
@@ -599,7 +267,7 @@ int main(void)
     Error_Handler();
   }
   LCD_FillColor(RGB565_WHITE);
-  // APP_RunColorCycleTest();
+//  APP_RunColorCycleTest();
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -953,12 +621,12 @@ static void MX_LTDC_Init(void)
   hltdc.Init.PCPolarity = LTDC_PCPOLARITY_IPC;
   hltdc.Init.HorizontalSync = 23;
   hltdc.Init.VerticalSync = 1;
-  hltdc.Init.AccumulatedHBP = 183;
-  hltdc.Init.AccumulatedVBP = 24;
-  hltdc.Init.AccumulatedActiveW = 1207;
-  hltdc.Init.AccumulatedActiveH = 624;
-  hltdc.Init.TotalWidth = 1367;
-  hltdc.Init.TotalHeigh = 636;
+  hltdc.Init.AccumulatedHBP = 87;
+  hltdc.Init.AccumulatedVBP = 22;
+  hltdc.Init.AccumulatedActiveW = 1367;
+  hltdc.Init.AccumulatedActiveH = 822;
+  hltdc.Init.TotalWidth = 1491;
+  hltdc.Init.TotalHeigh = 837;
   hltdc.Init.Backcolor.Blue = 0;
   hltdc.Init.Backcolor.Green = 0;
   hltdc.Init.Backcolor.Red = 0;
@@ -967,17 +635,17 @@ static void MX_LTDC_Init(void)
     Error_Handler();
   }
   pLayerCfg.WindowX0 = 0;
-  pLayerCfg.WindowX1 = 1024;
+  pLayerCfg.WindowX1 = 1280;
   pLayerCfg.WindowY0 = 0;
-  pLayerCfg.WindowY1 = 600;
+  pLayerCfg.WindowY1 = 800;
   pLayerCfg.PixelFormat = LTDC_PIXEL_FORMAT_RGB565;
   pLayerCfg.Alpha = 255;
   pLayerCfg.Alpha0 = 0;
   pLayerCfg.BlendingFactor1 = LTDC_BLENDING_FACTOR1_CA;
   pLayerCfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_CA;
   pLayerCfg.FBStartAdress = 0x90000000;
-  pLayerCfg.ImageWidth = 1024;
-  pLayerCfg.ImageHeight = 600;
+  pLayerCfg.ImageWidth = 1280;
+  pLayerCfg.ImageHeight = 800;
   pLayerCfg.Backcolor.Blue = 0;
   pLayerCfg.Backcolor.Green = 0;
   pLayerCfg.Backcolor.Red = 0;

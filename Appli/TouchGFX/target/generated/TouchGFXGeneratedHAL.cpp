@@ -48,7 +48,7 @@ void TouchGFXGeneratedHAL::initialize()
 {
     HALGPU2D::initialize(16384);
     registerEventListener(*(Application::getInstance()));
-    setFrameBufferStartAddresses((void*)0x90000000, (void*)0x9012C000, (void*)0);
+    setFrameBufferStartAddresses((void*)0x90000000, (void*)0x901F4000, (void*)0);
 }
 
 void TouchGFXGeneratedHAL::configureInterrupts()

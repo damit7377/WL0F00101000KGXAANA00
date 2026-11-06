@@ -7,11 +7,11 @@
 
 MainScreenViewBase::MainScreenViewBase()
 {
-    __background.setPosition(0, 0, 1024, 600);
+    __background.setPosition(0, 0, 1280, 800);
     __background.setColor(touchgfx::Color::getColorFromRGB(0, 0, 0));
     add(__background);
 
-    box1.setPosition(0, 0, 1024, 600);
+    box1.setPosition(0, 0, 1280, 800);
     box1.setColor(touchgfx::Color::getColorFromRGB(0, 255, 13));
     add(box1);
 

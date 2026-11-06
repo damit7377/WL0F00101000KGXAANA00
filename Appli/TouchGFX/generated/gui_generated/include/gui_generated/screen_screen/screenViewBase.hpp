@@ -8,7 +8,6 @@
 #include <mvp/View.hpp>
 #include <gui/screen_screen/screenPresenter.hpp>
 #include <touchgfx/widgets/Box.hpp>
-#include <touchgfx/widgets/Image.hpp>
 #include <touchgfx/widgets/TextArea.hpp>
 #include <touchgfx/widgets/ButtonWithLabel.hpp>
 #include <touchgfx/mixins/ClickListener.hpp>
@@ -30,7 +29,7 @@ protected:
      * Member Declarations
      */
     touchgfx::Box __background;
-    touchgfx::Image image1;
+    touchgfx::Box box1;
     touchgfx::TextArea textArea1;
     touchgfx::ClickListener< touchgfx::ButtonWithLabel > buttonWithLabel_ETHTEST;
     touchgfx::TextAreaWithOneWildcard textArea2;

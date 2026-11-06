@@ -41,7 +41,7 @@ static LCDGPU2D_AXI display;
 
 static ApplicationFontProvider fontProvider;
 static Texts texts;
-static TouchGFXHAL hal(dma, display, tc, 1024, 600);
+static TouchGFXHAL hal(dma, display, tc, 1280, 800);
 
 void touchgfx_init()
 {
@@ -69,7 +69,7 @@ void touchgfx_components_init()
 {
     nema_init();
     nema_reg_write(0xFFC, 0x7E); /* Enable bus error interrupts */
-    nema_vg_init_stencil_pool(1024, 600, 1);
+    nema_vg_init_stencil_pool(1280, 800, 1);
     nema_vg_handle_large_coords(1, 1);
     nema_ext_hold_enable(2);
     nema_ext_hold_irq_enable(2);

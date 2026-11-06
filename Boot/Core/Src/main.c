@@ -178,7 +178,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL3.PLLN = 50;
   RCC_OscInitStruct.PLL3.PLLP = 2;
   RCC_OscInitStruct.PLL3.PLLQ = 2;
-  RCC_OscInitStruct.PLL3.PLLR = 12;
+  RCC_OscInitStruct.PLL3.PLLR = 8;
   RCC_OscInitStruct.PLL3.PLLS = 8;
   RCC_OscInitStruct.PLL3.PLLT = 2;
   RCC_OscInitStruct.PLL3.PLLFractional = 0;

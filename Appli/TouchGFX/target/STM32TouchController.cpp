@@ -37,8 +37,8 @@ static uint16_t resolution_y;
 static constexpr uint16_t GT911_I2C_ADDRESS = 0xBA;
 static constexpr uint16_t GT911_STATUS_REGISTER = 0x814E;
 static constexpr uint16_t GT911_COORDINATE_REGISTER = 0x814F;
-static constexpr uint16_t DISPLAY_WIDTH = 1024;
-static constexpr uint16_t DISPLAY_HEIGHT = 600;
+static constexpr uint16_t DISPLAY_WIDTH = 1280;
+static constexpr uint16_t DISPLAY_HEIGHT = 800;
 
 void STM32TouchController::init()
 {
