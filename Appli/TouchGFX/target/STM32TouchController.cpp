@@ -33,12 +33,26 @@ GPIO_InitTypeDef GPIO_InitStruct = {0};
 extern Touch_t Touch;
 static uint16_t resolution_x;
 static uint16_t resolution_y;
+static int32_t lastTouchX;
+static int32_t lastTouchY;
+static bool touchActive;
 
-static constexpr uint16_t GT911_I2C_ADDRESS = 0xBA;
-static constexpr uint16_t GT911_STATUS_REGISTER = 0x814E;
-static constexpr uint16_t GT911_COORDINATE_REGISTER = 0x814F;
+static constexpr uint16_t GT928_I2C_ADDRESS = 0xBA;
+static constexpr uint16_t GT928_STATUS_REGISTER = 0x814E;
+static constexpr uint16_t GT928_COORDINATE_REGISTER = 0x814F;
+static constexpr uint8_t GT928_MAX_TOUCHES = 10U;
 static constexpr uint16_t DISPLAY_WIDTH = 1280;
 static constexpr uint16_t DISPLAY_HEIGHT = 800;
+
+static bool reportLastTouch(int32_t& x, int32_t& y)
+{
+  if (touchActive)
+  {
+    x = lastTouchX;
+    y = lastTouchY;
+  }
+  return touchActive;
+}
 
 void STM32TouchController::init()
 {
@@ -48,7 +62,6 @@ void STM32TouchController::init()
      */
     uint8_t resolutionData[4] = {0};
 
-    HAL_NVIC_DisableIRQ(EXTI8_IRQn);
     GPIO_InitStruct.Pin = CTP_INT_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -59,7 +72,7 @@ void STM32TouchController::init()
 
     HAL_Delay( 20 );
     HAL_GPIO_WritePin(CTP_RST_GPIO_Port, CTP_RST_Pin, GPIO_PIN_SET);
-    HAL_Delay( 50 );
+    HAL_Delay( 60 );
 
     GPIO_InitStruct.Pin = CTP_INT_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
@@ -68,7 +81,7 @@ void STM32TouchController::init()
 
     HAL_Delay( 100 );
 
-    if (HAL_I2C_Mem_Read(&hi2c1, GT911_I2C_ADDRESS, 0x8048,
+    if (HAL_I2C_Mem_Read(&hi2c1, GT928_I2C_ADDRESS, 0x8048,
                I2C_MEMADD_SIZE_16BIT, resolutionData,
                sizeof(resolutionData), 10) != HAL_OK)
     {
@@ -85,13 +98,11 @@ void STM32TouchController::init()
     }
 
     GPIO_InitStruct.Pin = CTP_INT_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(CTP_INT_GPIO_Port, &GPIO_InitStruct);
-    __HAL_GPIO_EXTI_CLEAR_IT(CTP_INT_Pin);
     CTP_InterruptPending = 0U;
-    HAL_NVIC_SetPriority(EXTI8_IRQn, 5, 0);
-    HAL_NVIC_EnableIRQ(EXTI8_IRQn);
+    touchActive = false;
 }
 
 bool STM32TouchController::sampleTouch(int32_t& x, int32_t& y)
@@ -106,18 +117,12 @@ bool STM32TouchController::sampleTouch(int32_t& x, int32_t& y)
      * By default sampleTouch is called every tick, this can be adjusted by HAL::setTouchSampleRate(int8_t);
      *
      */
-    if (CTP_InterruptPending == 0U)
-    {
-      return false;
-    }
-    CTP_InterruptPending = 0U;
-
     uint8_t status = 0U;
-    if (HAL_I2C_Mem_Read(&hi2c1, GT911_I2C_ADDRESS, GT911_STATUS_REGISTER,
+    if (HAL_I2C_Mem_Read(&hi2c1, GT928_I2C_ADDRESS, GT928_STATUS_REGISTER,
                I2C_MEMADD_SIZE_16BIT, &status, 1U, 10U) != HAL_OK)
     {
       CTP_InterruptPending = 1U;
-      return false;
+      return reportLastTouch(x, y);
     }
 
     Touch.Status = (status >> 7) & 0x01U;
@@ -125,31 +130,32 @@ bool STM32TouchController::sampleTouch(int32_t& x, int32_t& y)
     if (Touch.Status == 0U)
     {
       Touch.Number = 0U;
-      return false;
+      return reportLastTouch(x, y);
     }
 
     uint8_t coordinateData[5] = {0};
-    bool hasTouch = Touch.Number >= 1U && Touch.Number <= 5U;
+    bool hasTouch = Touch.Number >= 1U && Touch.Number <= GT928_MAX_TOUCHES;
     if (hasTouch &&
-      HAL_I2C_Mem_Read(&hi2c1, GT911_I2C_ADDRESS, GT911_COORDINATE_REGISTER,
+      HAL_I2C_Mem_Read(&hi2c1, GT928_I2C_ADDRESS, GT928_COORDINATE_REGISTER,
                I2C_MEMADD_SIZE_16BIT, coordinateData,
                sizeof(coordinateData), 10U) != HAL_OK)
     {
       CTP_InterruptPending = 1U;
-      return false;
+      return reportLastTouch(x, y);
     }
 
     uint8_t clearStatus = 0U;
-    if (HAL_I2C_Mem_Write(&hi2c1, GT911_I2C_ADDRESS, GT911_STATUS_REGISTER,
+    if (HAL_I2C_Mem_Write(&hi2c1, GT928_I2C_ADDRESS, GT928_STATUS_REGISTER,
                 I2C_MEMADD_SIZE_16BIT, &clearStatus, 1U, 10U) != HAL_OK)
     {
       CTP_InterruptPending = 1U;
-      return false;
+      return reportLastTouch(x, y);
     }
 
     if (!hasTouch)
     {
       Touch.Number = 0U;
+      touchActive = false;
       return false;
     }
 
@@ -164,8 +170,11 @@ bool STM32TouchController::sampleTouch(int32_t& x, int32_t& y)
       rawY = resolution_y - 1U;
     }
 
-    x = ((uint32_t)rawX * (DISPLAY_WIDTH - 1U)) / (resolution_x - 1U);
-    y = ((uint32_t)rawY * (DISPLAY_HEIGHT - 1U)) / (resolution_y - 1U);
+    lastTouchX = ((uint32_t)rawX * (DISPLAY_WIDTH - 1U)) / (resolution_x - 1U);
+    lastTouchY = ((uint32_t)rawY * (DISPLAY_HEIGHT - 1U)) / (resolution_y - 1U);
+    touchActive = true;
+    x = lastTouchX;
+    y = lastTouchY;
     return true;
 }
 

@@ -43,6 +43,7 @@
 #define RGB565_GREEN    0x07E0U
 #define RGB565_RED      0xF800U
 #define RGB565_WHITE    0xFFFFU
+#define RGB565_BLACK    0x0000U
 
 /* Backlight control definitions (from ref_code) */
 #define MAX_BRIGHTNESS_DUTY    92
@@ -53,6 +54,8 @@
 /* USER CODE BEGIN PM */
 Touch_t Touch;
 volatile uint8_t CTP_InterruptPending;
+volatile uint32_t LTDC_FifoUnderrunCount;
+volatile uint32_t LTDC_TransferErrorCount;
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -181,20 +184,24 @@ static void APP_RunColorCycleTest(void)
 
 static void LCD_FillColor(uint16_t color)
 {
-  HAL_GPIO_WritePin(TFT_NRST_GPIO_Port, TFT_NRST_Pin, GPIO_PIN_RESET);
-  HAL_Delay(50);
-  HAL_GPIO_WritePin(TFT_NRST_GPIO_Port, TFT_NRST_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(TFT_EN_GPIO_Port, TFT_EN_Pin, GPIO_PIN_RESET);
-  HAL_Delay(900);
-  HAL_GPIO_WritePin(TFT_EN_GPIO_Port, TFT_EN_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(BL_EN_GPIO_Port, BL_EN_Pin, GPIO_PIN_RESET);
+  HAL_TIM_PWM_Stop(&htim13, TIM_CHANNEL_1);
   HAL_GPIO_WritePin(TFT_SETB_GPIO_Port, TFT_SETB_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(TFT_NRST_GPIO_Port, TFT_NRST_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(TFT_EN_GPIO_Port, TFT_EN_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(TFT_LR_GPIO_Port, TFT_LR_Pin, GPIO_PIN_SET);
+  APP_FillFrameBuffer(color);
+  HAL_Delay(50);
+  HAL_GPIO_WritePin(TFT_EN_GPIO_Port, TFT_EN_Pin, GPIO_PIN_SET);
+  HAL_Delay(900);
+  HAL_GPIO_WritePin(TFT_NRST_GPIO_Port, TFT_NRST_Pin, GPIO_PIN_SET);
+  HAL_Delay(2);
+  HAL_GPIO_WritePin(TFT_SETB_GPIO_Port, TFT_SETB_Pin, GPIO_PIN_SET);
   HAL_Delay(200);
-  HAL_GPIO_WritePin(BL_EN_GPIO_Port, BL_EN_Pin, GPIO_PIN_SET);
-  HAL_Delay(10);
   Set_Brightness_Duty(100);
   HAL_TIM_PWM_Start(&htim13, TIM_CHANNEL_1);
-  APP_FillFrameBuffer(color);
+  HAL_Delay(10);
+  HAL_GPIO_WritePin(BL_EN_GPIO_Port, BL_EN_Pin, GPIO_PIN_SET);
 }
 
 /* USER CODE END 0 */
@@ -266,7 +273,7 @@ int main(void)
   {
     Error_Handler();
   }
-  LCD_FillColor(RGB565_WHITE);
+  LCD_FillColor(RGB565_BLACK);
 //  APP_RunColorCycleTest();
   /* USER CODE END 2 */
 
@@ -925,6 +932,20 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   if (GPIO_Pin == CTP_INT_Pin)
   {
     CTP_InterruptPending = 1U;
+  }
+}
+
+void HAL_LTDC_ErrorCallback(LTDC_HandleTypeDef *ltdc)
+{
+  const uint32_t error = HAL_LTDC_GetError(ltdc);
+
+  if ((error & HAL_LTDC_ERROR_FU) != 0U)
+  {
+    LTDC_FifoUnderrunCount++;
+  }
+  if ((error & HAL_LTDC_ERROR_TE) != 0U)
+  {
+    LTDC_TransferErrorCount++;
   }
 }
 

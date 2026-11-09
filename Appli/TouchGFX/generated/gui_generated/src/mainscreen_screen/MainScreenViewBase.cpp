@@ -15,7 +15,7 @@ MainScreenViewBase::MainScreenViewBase()
     box1.setColor(touchgfx::Color::getColorFromRGB(0, 255, 13));
     add(box1);
 
-    image1.setXY(480, 236);
+    image1.setXY(608, 336);
     image1.setBitmap(touchgfx::Bitmap(BITMAP_BUTTON_01_00_ID));
     add(image1);
 }

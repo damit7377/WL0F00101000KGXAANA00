@@ -17,8 +17,8 @@
           {
             "Type": "Image",
             "Name": "image1",
-            "X": 480,
-            "Y": 236,
+            "X": 608,
+            "Y": 336,
             "Width": 64,
             "Height": 128,
             "RelativeFilename": "button_01_00.png",
@@ -56,7 +56,8 @@
           {
             "Type": "TextArea",
             "Name": "textArea1",
-            "X": 882,
+            "X": 1138,
+            "Y": 5,
             "Width": 142,
             "Height": 41,
             "TextId": "__SingleUse_KRNP",
@@ -89,6 +90,29 @@
             "Clickable": true
           },
           {
+            "Type": "ButtonWithLabel",
+            "Name": "buttonWithLabel_ETHTEST_1",
+            "X": 535,
+            "Y": 375,
+            "Width": 240,
+            "Height": 50,
+            "Pressed": "__generated\\alternate_theme_images_widgets_button_regular_height_50_medium_rounded_pressed.png",
+            "Released": "__generated\\alternate_theme_images_widgets_button_regular_height_50_medium_rounded_normal.png",
+            "TextId": "__SingleUse_O5EX",
+            "ReleasedColor": {
+              "Red": 255,
+              "Green": 255,
+              "Blue": 255
+            },
+            "PressedColor": {
+              "Red": 255,
+              "Green": 255,
+              "Blue": 255
+            },
+            "TextRotation": "0",
+            "Preset": "alternate_theme\\presets\\button\\regular\\height_50\\medium_rounded_normal.json"
+          },
+          {
             "Type": "TextArea",
             "Name": "textArea2",
             "X": 240,
@@ -97,11 +121,6 @@
             "Height": 24,
             "TextId": "__SingleUse_GJC6",
             "TextRotation": "0",
-            "Color": {
-              "Red": 255,
-              "Green": 255,
-              "Blue": 255
-            },
             "Wildcard1": {
               "TextId": "__SingleUse_Q949",
               "UseBuffer": true,

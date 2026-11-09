@@ -32,6 +32,7 @@ protected:
     touchgfx::Box box1;
     touchgfx::TextArea textArea1;
     touchgfx::ClickListener< touchgfx::ButtonWithLabel > buttonWithLabel_ETHTEST;
+    touchgfx::ButtonWithLabel buttonWithLabel_ETHTEST_1;
     touchgfx::TextAreaWithOneWildcard textArea2;
 
     /*

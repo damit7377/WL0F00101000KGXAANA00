@@ -3,8 +3,8 @@
 /*********************************************************************************/
 #include <gui_generated/screen_screen/screenViewBase.hpp>
 #include <touchgfx/Color.hpp>
-#include <images/BitmapDatabase.hpp>
 #include <texts/TextKeysAndLanguages.hpp>
+#include <images/BitmapDatabase.hpp>
 
 screenViewBase::screenViewBase()
 {
@@ -16,7 +16,7 @@ screenViewBase::screenViewBase()
     box1.setColor(touchgfx::Color::getColorFromRGB(255, 255, 255));
     add(box1);
 
-    textArea1.setXY(882, 0);
+    textArea1.setXY(1138, 5);
     textArea1.setColor(touchgfx::Color::getColorFromRGB(255, 0, 0));
     textArea1.setLinespacing(0);
     textArea1.setTypedText(touchgfx::TypedText(T___SINGLEUSE_KRNP));
@@ -29,8 +29,15 @@ screenViewBase::screenViewBase()
     buttonWithLabel_ETHTEST.setLabelColorPressed(touchgfx::Color::getColorFromRGB(255, 255, 255));
     add(buttonWithLabel_ETHTEST);
 
+    buttonWithLabel_ETHTEST_1.setXY(535, 375);
+    buttonWithLabel_ETHTEST_1.setBitmaps(touchgfx::Bitmap(BITMAP_ALTERNATE_THEME_IMAGES_WIDGETS_BUTTON_REGULAR_HEIGHT_50_MEDIUM_ROUNDED_NORMAL_ID), touchgfx::Bitmap(BITMAP_ALTERNATE_THEME_IMAGES_WIDGETS_BUTTON_REGULAR_HEIGHT_50_MEDIUM_ROUNDED_PRESSED_ID));
+    buttonWithLabel_ETHTEST_1.setLabelText(touchgfx::TypedText(T___SINGLEUSE_O5EX));
+    buttonWithLabel_ETHTEST_1.setLabelColor(touchgfx::Color::getColorFromRGB(255, 255, 255));
+    buttonWithLabel_ETHTEST_1.setLabelColorPressed(touchgfx::Color::getColorFromRGB(255, 255, 255));
+    add(buttonWithLabel_ETHTEST_1);
+
     textArea2.setPosition(240, 13, 120, 24);
-    textArea2.setColor(touchgfx::Color::getColorFromRGB(255, 255, 255));
+    textArea2.setColor(touchgfx::Color::getColorFromRGB(0, 0, 0));
     textArea2.setLinespacing(0);
     Unicode::snprintf(textArea2Buffer, TEXTAREA2_SIZE, "%s", touchgfx::TypedText(T___SINGLEUSE_Q949).getText());
     textArea2.setWildcard(textArea2Buffer);
