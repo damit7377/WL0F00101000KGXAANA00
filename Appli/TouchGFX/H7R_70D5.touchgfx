@@ -136,6 +136,16 @@
               "UseBuffer": true,
               "BufferSize": 15
             }
+          },
+          {
+            "Type": "Button",
+            "Name": "button1",
+            "X": 347,
+            "Y": 311,
+            "Width": 64,
+            "Height": 128,
+            "Pressed": "button_01_01.png",
+            "Released": "button_01_00.png"
           }
         ],
         "Interactions": []

@@ -21,8 +21,6 @@ protected:
                               const touchgfx::ClickEvent& event);
 
     ETH_TestResultTypeDef displayedEthTestResult;
-    uint32_t bitmapSwitchTick;
-    bool bitmapTestPressed;
     void updateEthTestResult(ETH_TestResultTypeDef result);
 };
 

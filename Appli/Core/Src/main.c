@@ -305,7 +305,7 @@ int main(void)
   TouchGFXTaskHandle = osThreadNew(TouchGFX_Task, NULL, &TouchGFXTask_attributes);
 
   /* creation of ETHLoopbackTask */
-  ETHLoopbackTaskHandle = osThreadNew(StartETHLoopbackTask, NULL, &ETHLoopbackTask_attributes);
+  ETHLoopbackTaskHandle = osThreadNew(StartETHLoopbackTask, &ethLoopback, &ETHLoopbackTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -633,8 +633,8 @@ static void MX_LTDC_Init(void)
   hltdc.Init.AccumulatedVBP = 22;
   hltdc.Init.AccumulatedActiveW = 1367;
   hltdc.Init.AccumulatedActiveH = 822;
-  hltdc.Init.TotalWidth = 1439;
-  hltdc.Init.TotalHeigh = 837;
+  hltdc.Init.TotalWidth = 1379;
+  hltdc.Init.TotalHeigh = 823;
   hltdc.Init.Backcolor.Blue = 0;
   hltdc.Init.Backcolor.Green = 0;
   hltdc.Init.Backcolor.Red = 0;

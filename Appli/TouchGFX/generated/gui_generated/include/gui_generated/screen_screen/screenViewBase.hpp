@@ -12,6 +12,7 @@
 #include <touchgfx/widgets/ButtonWithLabel.hpp>
 #include <touchgfx/mixins/ClickListener.hpp>
 #include <touchgfx/widgets/TextAreaWithWildcard.hpp>
+#include <touchgfx/widgets/Button.hpp>
 
 class screenViewBase : public touchgfx::View<screenPresenter>
 {
@@ -34,6 +35,7 @@ protected:
     touchgfx::ClickListener< touchgfx::ButtonWithLabel > buttonWithLabel_ETHTEST;
     touchgfx::ButtonWithLabel buttonWithLabel_ETHTEST_1;
     touchgfx::TextAreaWithOneWildcard textArea2;
+    touchgfx::Button button1;
 
     /*
      * Wildcard Buffers

@@ -43,6 +43,10 @@ screenViewBase::screenViewBase()
     textArea2.setWildcard(textArea2Buffer);
     textArea2.setTypedText(touchgfx::TypedText(T___SINGLEUSE_GJC6));
     add(textArea2);
+
+    button1.setXY(347, 311);
+    button1.setBitmaps(touchgfx::Bitmap(BITMAP_BUTTON_01_00_ID), touchgfx::Bitmap(BITMAP_BUTTON_01_01_ID));
+    add(button1);
 }
 
 screenViewBase::~screenViewBase()
