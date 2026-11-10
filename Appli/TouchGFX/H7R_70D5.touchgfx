@@ -15,17 +15,6 @@
             }
           },
           {
-            "Type": "AnimatedImage",
-            "Name": "animatedImage1",
-            "Width": 1280,
-            "Height": 800,
-            "FileNameFirst": "HEPA_1.png",
-            "FileNameLast": "HEPA_3.png",
-            "UpdateTicksInterval": 500,
-            "StartOnLoad": true,
-            "LoopEnabled": true
-          },
-          {
             "Type": "Image",
             "Name": "image1",
             "X": 608,
@@ -34,6 +23,16 @@
             "Height": 128,
             "RelativeFilename": "button_01_00.png",
             "Clickable": true
+          },
+          {
+            "Type": "Button",
+            "Name": "button1",
+            "X": 839,
+            "Y": 204,
+            "Width": 64,
+            "Height": 128,
+            "Pressed": "button_01_01.png",
+            "Released": "button_01_00.png"
           }
         ],
         "Interactions": [

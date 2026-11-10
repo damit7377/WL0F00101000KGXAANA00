@@ -8,9 +8,9 @@
 #include <mvp/View.hpp>
 #include <gui/mainscreen_screen/MainScreenPresenter.hpp>
 #include <touchgfx/widgets/Box.hpp>
-#include <touchgfx/widgets/AnimatedImage.hpp>
 #include <touchgfx/widgets/Image.hpp>
 #include <touchgfx/mixins/ClickListener.hpp>
+#include <touchgfx/widgets/Button.hpp>
 
 class MainScreenViewBase : public touchgfx::View<MainScreenPresenter>
 {
@@ -29,8 +29,8 @@ protected:
      */
     touchgfx::Box __background;
     touchgfx::Box box1;
-    touchgfx::AnimatedImage animatedImage1;
     touchgfx::ClickListener< touchgfx::Image > image1;
+    touchgfx::Button button1;
 
 private:
 
