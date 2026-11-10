@@ -1,8 +1,12 @@
 #include <gui/screen_screen/screenView.hpp>
+#include <images/BitmapDatabase.hpp>
+#include "main.h"
 
 screenView::screenView() :
     ethTestButtonCallback(this, &screenView::ethTestButtonClicked),
-    displayedEthTestResult(ETH_TEST_NOT_READY)
+    displayedEthTestResult(ETH_TEST_NOT_READY),
+    bitmapSwitchTick(0U),
+    bitmapTestPressed(false)
 {
     buttonWithLabel_ETHTEST.setClickAction(ethTestButtonCallback);
 }
@@ -10,6 +14,12 @@ screenView::screenView() :
 void screenView::setupScreen()
 {
     screenViewBase::setupScreen();
+    bitmapSwitchTick = HAL_GetTick();
+    bitmapTestPressed = false;
+    buttonWithLabel_ETHTEST_1.setBitmaps(
+        touchgfx::Bitmap(BITMAP_ALTERNATE_THEME_IMAGES_WIDGETS_BUTTON_REGULAR_HEIGHT_50_MEDIUM_ROUNDED_NORMAL_ID),
+        touchgfx::Bitmap(BITMAP_ALTERNATE_THEME_IMAGES_WIDGETS_BUTTON_REGULAR_HEIGHT_50_MEDIUM_ROUNDED_NORMAL_ID));
+    buttonWithLabel_ETHTEST_1.invalidate();
 }
 
 void screenView::tearDownScreen()
@@ -19,6 +29,20 @@ void screenView::tearDownScreen()
 
 void screenView::handleTickEvent()
 {
+    const uint32_t currentTick = HAL_GetTick();
+    if ((currentTick - bitmapSwitchTick) >= 2000U)
+    {
+        bitmapSwitchTick = currentTick;
+        bitmapTestPressed = !bitmapTestPressed;
+
+        const uint16_t bitmapId = bitmapTestPressed
+            ? BITMAP_ALTERNATE_THEME_IMAGES_WIDGETS_BUTTON_REGULAR_HEIGHT_50_MEDIUM_ROUNDED_PRESSED_ID
+            : BITMAP_ALTERNATE_THEME_IMAGES_WIDGETS_BUTTON_REGULAR_HEIGHT_50_MEDIUM_ROUNDED_NORMAL_ID;
+        const touchgfx::Bitmap bitmap(bitmapId);
+        buttonWithLabel_ETHTEST_1.setBitmaps(bitmap, bitmap);
+        buttonWithLabel_ETHTEST_1.invalidate();
+    }
+
     const ETH_TestResultTypeDef result = ETH_Loopback_GetResult();
 
     if (result != displayedEthTestResult)

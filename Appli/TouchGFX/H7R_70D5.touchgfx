@@ -15,6 +15,17 @@
             }
           },
           {
+            "Type": "AnimatedImage",
+            "Name": "animatedImage1",
+            "Width": 1280,
+            "Height": 800,
+            "FileNameFirst": "HEPA_1.png",
+            "FileNameLast": "HEPA_3.png",
+            "UpdateTicksInterval": 500,
+            "StartOnLoad": true,
+            "LoopEnabled": true
+          },
+          {
             "Type": "Image",
             "Name": "image1",
             "X": 608,

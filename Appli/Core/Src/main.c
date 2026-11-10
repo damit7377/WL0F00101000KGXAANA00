@@ -139,6 +139,7 @@ static void MX_UART8_Init(void);
 static void MX_ETH_Init(void);
 void StartDefaultTask(void *argument);
 extern void TouchGFX_Task(void *argument);
+extern void StartETHLoopbackTask(void *argument);
 
 /* USER CODE BEGIN PFP */
 static void LCD_FillColor(uint16_t color);
@@ -304,7 +305,7 @@ int main(void)
   TouchGFXTaskHandle = osThreadNew(TouchGFX_Task, NULL, &TouchGFXTask_attributes);
 
   /* creation of ETHLoopbackTask */
-  ETHLoopbackTaskHandle = osThreadNew(StartETHLoopbackTask, &ethLoopback, &ETHLoopbackTask_attributes);
+  ETHLoopbackTaskHandle = osThreadNew(StartETHLoopbackTask, NULL, &ETHLoopbackTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -632,7 +633,7 @@ static void MX_LTDC_Init(void)
   hltdc.Init.AccumulatedVBP = 22;
   hltdc.Init.AccumulatedActiveW = 1367;
   hltdc.Init.AccumulatedActiveH = 822;
-  hltdc.Init.TotalWidth = 1491;
+  hltdc.Init.TotalWidth = 1439;
   hltdc.Init.TotalHeigh = 837;
   hltdc.Init.Backcolor.Blue = 0;
   hltdc.Init.Backcolor.Green = 0;

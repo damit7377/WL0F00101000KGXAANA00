@@ -15,6 +15,12 @@ MainScreenViewBase::MainScreenViewBase()
     box1.setColor(touchgfx::Color::getColorFromRGB(0, 255, 13));
     add(box1);
 
+    animatedImage1.setXY(0, 0);
+    animatedImage1.setBitmaps(BITMAP_HEPA_1_ID, BITMAP_HEPA_3_ID);
+    animatedImage1.setUpdateTicksInterval(30);
+    animatedImage1.startAnimation(false, true, true);
+    add(animatedImage1);
+
     image1.setXY(608, 336);
     image1.setBitmap(touchgfx::Bitmap(BITMAP_BUTTON_01_00_ID));
     add(image1);
